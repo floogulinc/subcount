@@ -65,40 +65,43 @@ interface FanboxSupportingResp {
 }
 
 class Subcount extends Command {
-  static description = 'describe the command here'
+  static description = 'Count your subscriptions on Patreon and Fanbox'
 
   static flags = {
     // add --version flag to show CLI version
     version: flags.version({char: 'v'}),
     help: flags.help({char: 'h'}),
 
-    fanbox: flags.boolean({char: 'f'}),
-    patreon: flags.boolean({char: 'p'}),
+    fanbox: flags.boolean({char: 'f', description: 'enable checking Fanbox'}),
+    patreon: flags.boolean({char: 'p', description: 'enable checking Patreon'}),
     ...cli.table.flags()
   }
 
   static args: Parser.args.Input = [
     {
       name: 'apikey',
-      required: true
+      required: true,
+      description: 'Hydrus API key'
     },
     {
       name: 'apiurl',
-      default: 'http://localhost:45869'
+      default: 'http://localhost:45869',
+      description: 'Hydrus API URL',
+      parse: input => input.replace(/\/$/, '')
     },
   ]
 
   async run() {
     const {args, flags} = this.parse(Subcount)
     if (flags.patreon) {
-      await this.getPatreon(args.apiurl, args.apikey);
+      await this.getPatreon(args.apiurl, args.apikey, flags);
     }
     if (flags.fanbox) {
-      await this.getFanbox(args.apiurl, args.apikey);
+      await this.getFanbox(args.apiurl, args.apikey, flags);
     }
   }
 
-  async getPatreon(apiUrl: string, apiKey: string) {
+  async getPatreon(apiUrl: string, apiKey: string, flags: any) {
     cli.action.start('Checking Patreon');
     const cookies = await this.getCookies(apiUrl, apiKey, 'patreon.com');
     const patreonResp = await axios.get<PatreonPledgesResp>('https://www.patreon.com/api/pledges', {
@@ -122,14 +125,16 @@ class Subcount extends Command {
         },
         campaign: {
           name: campaign?.attributes.name,
-          id: campaign?.id
+          id: campaign?.id,
+          url: campaign?.attributes.url
         }
       };
     });
 
     const tableData = patreonPairs.map(({pledge, campaign}) => ({
       name: campaign.name,
-      pledge: `${pledge.amount_cents / 100} ${pledge.currency}`
+      pledge: `${pledge.amount_cents / 100} ${pledge.currency}`,
+      url: campaign.url
     }));
 
     cli.action.stop();
@@ -141,6 +146,10 @@ class Subcount extends Command {
       pledge: {
 
       },
+      url: {
+        extended: true,
+        header: 'URL'
+      }
     }, {
       printLine: this.log,
       ...flags, // parsed flags
@@ -148,11 +157,11 @@ class Subcount extends Command {
 
     const patreonTotal = patreonPairs.map(p => p.pledge.amount_cents).reduce((p, c) => p + c, 0);
 
-    this.log(`Patreon total: ${patreonTotal / 100}`);
+    this.log(`Patreon ${patreonPairs.length} subs total: ${patreonTotal / 100}`);
     this.log('');
   }
 
-  async getFanbox(apiUrl: string, apiKey: string) {
+  async getFanbox(apiUrl: string, apiKey: string, flags: any) {
     cli.action.start('Checking Fanbox');
     const cookies = await this.getCookies(apiUrl, apiKey, 'fanbox.cc');
     const fanboxResp = await axios.get<FanboxSupportingResp>('https://api.fanbox.cc/plan.listSupporting', {
@@ -165,8 +174,9 @@ class Subcount extends Command {
     const fanboxData = fanboxResp.data.body;
 
     const tableData = fanboxData.map(pledge => ({
-      name: pledge.user.name,
+      name: pledge.user.name + (pledge.user.name === pledge.creatorId ? '' : ` (${pledge.creatorId})`),
       pledge: `${pledge.fee} JPY`,
+      url: `https://fanbox.cc/@${pledge.creatorId}`
     }));
 
     cli.action.stop();
@@ -178,6 +188,10 @@ class Subcount extends Command {
       pledge: {
 
       },
+      url: {
+        extended: true,
+        header: 'URL'
+      }
     }, {
       printLine: this.log,
       ...flags, // parsed flags
@@ -185,7 +199,7 @@ class Subcount extends Command {
 
     const fanboxTotal = fanboxData.map(p => p.fee).reduce((p, c) => p + c, 0);
 
-    this.log(`Fanbox total: ${fanboxTotal} JPY`);
+    this.log(`Fanbox ${fanboxData.length} subs total: ${fanboxTotal} JPY`);
     this.log('');
   }
 
