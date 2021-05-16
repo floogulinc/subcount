@@ -1,7 +1,7 @@
 {
   "name": "subcount",
   "description": "Count your subscriptions on Patreon and Fanbox",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "author": "floogulinc",
   "bin": {
     "subcount": "./bin/run"
