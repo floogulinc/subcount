@@ -6,9 +6,13 @@ Count your subscriptions on Patreon and Fanbox.
 Requires Hydrus with cookies for Patreon or Fanbox. It uses the Hydrus API to get cookies for the Patreon and Fanbox APIs.
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
+[![Version](https://img.shields.io/npm/v/@floogulinc/subcount.svg)](https://npmjs.org/package/@floogulinc/subcount)
+[![Downloads/week](https://img.shields.io/npm/dw/@floogulinc/subcount.svg)](https://npmjs.org/package/@floogulinc/subcount)
+[![License](https://img.shields.io/npm/l/@floogulinc/subcount.svg)](https://github.com/floogulinc/subcount/blob/master/package.json)
 
 # Usage
 ```sh-session
+$ npm install -g @floogulinc/subcount
 $ subcount --help
 Count your subscriptions on Patreon and Fanbox
 
