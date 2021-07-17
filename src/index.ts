@@ -134,7 +134,8 @@ class Subcount extends Command {
     const tableData = patreonPairs.map(({pledge, campaign}) => ({
       name: campaign.name,
       pledge: `${pledge.amount_cents / 100} ${pledge.currency}`,
-      url: campaign.url
+      url: campaign.url,
+      id: campaign.id
     }));
 
     cli.action.stop();
@@ -149,6 +150,10 @@ class Subcount extends Command {
       url: {
         extended: true,
         header: 'URL'
+      },
+      id: {
+        extended: true,
+        header: 'Campaign ID'
       }
     }, {
       printLine: this.log,
